@@ -1,0 +1,18 @@
+{
+  "name": "friend-bingo",
+  "version": "1.0.0",
+  "description": "Friend Bingo — a bingo night for a TV and your phones. The TV calls the balls, everyone daubs on their phone, and the first to shout BINGO takes the round.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/play.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,133 @@
+/* Shared styles: "Bingo Night". A midnight-blue hall with marquee bulbs, glossy bingo balls in the
+   classic column colours, cream paper cards and hot-pink dauber ink. Lilita One for the big words,
+   Nunito for everything else. Rounded everywhere: this one is a party, not a dungeon. */
+@font-face { font-family: 'Lilita One'; font-weight: 400; src: url('/lilita.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Nunito'; font-weight: 400; src: url('/nunito-400.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Nunito'; font-weight: 700; src: url('/nunito-700.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Nunito'; font-weight: 900; src: url('/nunito-900.woff2') format('woff2'); font-display: swap; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+:root {
+  --bg1: #0f1440; --bg2: #1c2566; --bg3: #080b24;
+  --accent: #ff3d7f; --accent2: #ff8fb3; --accent-ink: #fff;
+  --gold: #ffcc33; --gold-hi: #ffe58a; --gold-lo: #c9950a; --gold-ink: #3a2600;
+  --gold-bg: linear-gradient(#ffe58a, #ffb800 55%, #e09a00);
+  --pink-bg: linear-gradient(#ff7aa8, #ff3d7f 55%, #c21d5c);
+  --panel: #151b4d; --panel2: #1d2560; --pit: #0a0d2b; --edge: #2c3680; --edge2: #3c4aa0; --dim: #2a336f;
+  --slab: linear-gradient(170deg, #1f2a70, #141a4e 60%, #10153f);
+  --slab2: linear-gradient(170deg, #1a2260, #121748);
+  --cream: #fff6e8; --cream2: #f7e9cf; --paper-ink: #1b1f3a;
+  --ink: #ffffff; --ink2: #eef0ff; --ink3: #c9cdf2; --muted: #8f97d6; --muted2: #6f78bd; --faint: #4a5399;
+  --good: #4fe08a; --good2: #1f9a52; --good-bg: linear-gradient(90deg, #1f9a52, #4fe08a);
+  --bad: #ff5a5a; --bad2: #b61e3c; --bad-bg: linear-gradient(90deg, #b61e3c, #ff5a5a);
+  --display: 'Lilita One', 'Impact', 'Arial Black', sans-serif;
+  --text: 'Nunito', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --r: 22px; --r2: 14px; --r3: 10px;
+  --glow: 0 0 24px rgba(255, 61, 127, .55);
+  --bulb: 0 0 6px #ffcc33, 0 0 14px rgba(255, 204, 51, .6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
+}
+
+.emo { font-style: normal; line-height: 1; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+
+/* --------------------------------------------------------------- pieces */
+.med { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.4em; height: 2.4em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--c1), var(--c2) 80%); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25), 0 2px 4px rgba(0, 0, 0, .35); letter-spacing: 0; text-indent: 0; }
+.med .emo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 1.3em; line-height: 1; white-space: nowrap; }
+.med.off { filter: grayscale(.8) brightness(.6); }
+
+/* A glossy bingo ball. Size it with font-size. */
+.ball { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 2.6em; height: 2.6em; border-radius: 50%; background: radial-gradient(circle at 34% 28%, var(--bh) 0, var(--bc) 38%, color-mix(in srgb, var(--bc) 55%, #000) 100%); box-shadow: inset -0.08em -0.12em 0.2em rgba(0, 0, 0, .35), 0 0.12em 0.3em rgba(0, 0, 0, .5); }
+.ball::after { content: ''; position: absolute; left: 20%; top: 12%; width: 32%; height: 18%; border-radius: 50%; background: linear-gradient(rgba(255, 255, 255, .85), rgba(255, 255, 255, 0)); transform: rotate(-25deg); }
+.ball .face { width: 70%; height: 70%; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #fff, #f3eee2); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--paper-ink); box-shadow: inset 0 0 0 0.04em rgba(0, 0, 0, .12); }
+.ball .face i { font: 400 .48em/1 var(--display); font-style: normal; margin-top: -.05em; letter-spacing: .02em; }
+.ball .face b { font: 900 .9em/1 var(--text); letter-spacing: -.02em; margin-top: -.02em; }
+.ball.word .face b { font-size: .36em; line-height: 1.05; padding: 0 .3em; text-align: center; overflow: hidden; max-height: 2.2em; }
+.ball.sm { font-size: .6em; }
+
+/* A 5×5 picture of a pattern. */
+.pat { display: inline-grid; grid-template-columns: repeat(5, 1fr); gap: .14em; width: 5em; height: 5em; padding: .3em; box-sizing: border-box; background: var(--cream); border-radius: .5em; vertical-align: middle; }
+.pat i { display: block; border-radius: .18em; background: #e6dcc6; }
+.pat i.on { background: var(--accent); box-shadow: inset 0 0 0 .08em rgba(255, 255, 255, .35); }
+.pat i.free:not(.on) { background: #cfc3a8; }
+.pat.lg { width: 8em; height: 8em; }
+
+/* The paper bingo card. The grid scales with the width of its box. */
+.bcard { position: relative; background: linear-gradient(170deg, #fffaf0, var(--cream) 60%, var(--cream2)); border-radius: var(--r2); padding: 3.5%; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0, 0, 0, .45), inset 0 0 0 2px rgba(0, 0, 0, .06); color: var(--paper-ink); container-type: inline-size; }
+.bcard .head { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3%; margin-bottom: 3%; }
+.bcard .head span { aspect-ratio: 1.45; border-radius: 999px; display: flex; align-items: center; justify-content: center; font: 400 10cqw/1 var(--display); color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); background: var(--lc); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .2); }
+.bcard .head span.n { color: var(--paper-ink); text-shadow: none; }
+.bcard .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3%; }
+.bcard .sq { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 12%; box-shadow: inset 0 0 0 1.5px rgba(27, 31, 58, .14); font: 900 8.5cqw/1 var(--text); letter-spacing: -.03em; color: var(--paper-ink); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; overflow: hidden; }
+.bcard .sq.word { font-size: 3.05cqw; font-weight: 800; line-height: 1.12; padding: 3%; text-align: center; overflow-wrap: break-word; hyphens: auto; }
+.bcard .sq.free { background: linear-gradient(160deg, #ffe58a, #ffb800); font: 400 5cqw/1 var(--display); color: #5a3a08; letter-spacing: .04em; }
+.bcard .sq.free::before { content: '★'; display: block; font-size: 7cqw; margin-bottom: 2%; }
+.bcard .sq .ink { position: absolute; left: 50%; top: 50%; width: 92%; height: 92%; transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); border-radius: 46% 54% 50% 48% / 52% 46% 54% 48%; background: radial-gradient(circle at 40% 35%, rgba(255, 143, 179, .95), rgba(255, 61, 127, .92) 50%, rgba(194, 29, 92, .9) 100%); mix-blend-mode: multiply; opacity: .9; animation: splat .22s cubic-bezier(.2, 1.4, .5, 1) both; pointer-events: none; }
+.bcard .sq .ink::after { content: ''; position: absolute; left: 18%; top: 14%; width: 28%; height: 16%; border-radius: 50%; background: rgba(255, 255, 255, .35); transform: rotate(-20deg); }
+.bcard .sq.daub { color: #3a0d22; }
+.bcard .sq.win { box-shadow: inset 0 0 0 3px var(--gold), 0 0 14px rgba(255, 204, 51, .8); z-index: 1; }
+.bcard .sq.miss { box-shadow: inset 0 0 0 3px var(--bad); }
+.bcard .sq.shake { animation: nopeX .4s ease-out; }
+.bcard.won { box-shadow: 0 0 0 4px var(--gold), 0 0 40px rgba(255, 204, 51, .6), 0 10px 30px rgba(0, 0, 0, .45); }
+@keyframes splat { 0% { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(0); } 60% { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1.18); } 100% { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1); } }
+@keyframes nopeX { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6%); } 40% { transform: translateX(6%); } 60% { transform: translateX(-4%); } 80% { transform: translateX(3%); } }
+
+/* --------------------------------------------------------------- buttons */
+.btn { font: 400 1.05em/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--gold-ink); background: var(--gold-bg); border: 0; padding: .95em 1.6em; cursor: pointer; border-radius: 999px; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .18), 0 4px 10px rgba(0, 0, 0, .35); transition: filter .12s, transform .12s; -webkit-tap-highlight-color: transparent; user-select: none; }
+.btn:hover { filter: brightness(1.06); }
+.btn:active, .btn[data-fx-press] { filter: brightness(.92); transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .35); }
+.btn.pink { background: var(--pink-bg); color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+.btn.red { background: linear-gradient(#ff7a7a, #e0343a 55%, #a81a26); color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+.btn.green { background: linear-gradient(#7af0a8, #2fb457 55%, #1f8a46); color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .3); }
+.btn.ghost { background: var(--pit); color: var(--ink3); box-shadow: inset 0 0 0 2px var(--edge2); }
+.btn:disabled { filter: grayscale(.7) brightness(.55); cursor: default; transform: none; }
+.btn.sm { font-size: .82em; padding: .75em 1.1em; }
+
+.chip { white-space: nowrap; font: 700 .85em/1 var(--text); color: var(--ink3); background: var(--pit); border: 0; padding: .6em .9em; cursor: pointer; border-radius: 999px; box-shadow: inset 0 0 0 1.5px var(--edge); -webkit-tap-highlight-color: transparent; transition: filter .12s; }
+.chip:hover { filter: brightness(1.15); }
+.chip.on { background: var(--gold-bg); color: var(--gold-ink); box-shadow: none; }
+.chip.pink { background: var(--pink-bg); color: #fff; box-shadow: none; }
+.chip.dim { opacity: .6; }
+.chip:disabled { opacity: .4; cursor: default; }
+
+/* --------------------------------------------------------------- dialogs */
+.dlg-back { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: rgba(5, 7, 30, .78); backdrop-filter: blur(3px); animation: dlgIn .18s ease-out; padding: 20px; }
+.dlg-back.out { animation: dlgOut .18s ease-in forwards; }
+.dlg { position: relative; width: min(440px, 100%); background: var(--slab); box-shadow: inset 0 0 0 2px var(--edge2), 0 20px 60px rgba(0, 0, 0, .6); border-radius: var(--r); padding: 26px 22px 22px; color: var(--ink); font-family: var(--text); max-height: 90vh; overflow: auto; box-sizing: border-box; }
+.dlg h2 { font: 400 1.4em/1.15 var(--display); letter-spacing: .04em; margin: 0 0 10px; color: var(--gold); text-transform: uppercase; }
+.dlg p { margin: 0 0 14px; line-height: 1.45; color: var(--ink3); font-size: 1.02em; }
+.dlg-in { width: 100%; box-sizing: border-box; font: 700 1.05em/1.3 var(--text); padding: 12px 14px; border: 0; border-radius: var(--r3); background: var(--pit); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--edge); margin-bottom: 14px; outline: none; }
+.dlg-in:focus { box-shadow: inset 0 0 0 2px var(--gold); }
+.dlg-ta { font-weight: 400; font-size: .95em; resize: vertical; min-height: 160px; }
+.dlg-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.dlg-btn { font: 400 .95em/1 var(--display); letter-spacing: .06em; text-transform: uppercase; padding: 13px 20px; border: 0; cursor: pointer; background: var(--pit); color: var(--ink3); box-shadow: inset 0 0 0 2px var(--edge2); border-radius: 999px; }
+.dlg-btn.pri { background: var(--gold-bg); color: var(--gold-ink); box-shadow: none; }
+.dlg-btn.red { background: linear-gradient(#ff7a7a, #a81a26); color: #fff; box-shadow: none; }
+.dlg-btn.hidden { display: none; }
+@keyframes dlgIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dlgOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* --------------------------------------------------------------- shared bits */
+.logo { display: flex; align-items: center; gap: .6em; }
+.logo .mk { width: 2.6em; height: 2.6em; flex: none; filter: drop-shadow(0 .15em .3em rgba(0, 0, 0, .5)); }
+.logo .mk svg { width: 100%; height: 100%; display: block; }
+.logo b { font: 400 1em/1 var(--display); letter-spacing: .03em; color: var(--ink); text-shadow: 0 .06em 0 #8a0f3f, 0 .12em 0 #4a0620, 0 .2em .4em rgba(0, 0, 0, .5); }
+.logo small { display: block; font: 900 .34em/1 var(--text); letter-spacing: .5em; color: var(--gold); margin-top: .5em; text-shadow: var(--bulb); }
+.kicker { font: 900 .72em/1 var(--text); letter-spacing: .35em; color: var(--accent2); text-transform: uppercase; }
+.panel { position: relative; background: var(--slab); box-shadow: inset 0 0 0 2px var(--edge), 0 12px 40px rgba(0, 0, 0, .4); border-radius: var(--r); }
+.panel.marquee { box-shadow: inset 0 0 0 2px var(--edge), 0 12px 40px rgba(0, 0, 0, .4); }
+.panel.marquee::before { content: ''; position: absolute; inset: 8px; border-radius: calc(var(--r) - 8px); border: 3px dotted var(--gold); opacity: .55; pointer-events: none; filter: drop-shadow(0 0 4px var(--gold)); }
+.panel > * { position: relative; }
+.bulbs { display: flex; justify-content: center; gap: 12px; }
+.bulbs i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: var(--bulb); animation: twinkle 1.2s ease-in-out infinite; }
+.bulbs i:nth-child(odd) { animation-delay: .6s; }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.float { position: absolute; pointer-events: none; font: 400 1em/1 var(--display); text-shadow: 0 2px 4px #000c; animation: floatUp 1.3s ease-out forwards; z-index: 5; white-space: nowrap; }
+.float.gold { color: var(--gold); } .float.pink { color: var(--accent); } .float.bad { color: var(--bad); } .float.good { color: var(--good); }
+@keyframes floatUp { 0% { transform: translateY(0) scale(.6); opacity: 0; } 15% { transform: translateY(-10px) scale(1.2); opacity: 1; } 100% { transform: translateY(-80px) scale(1); opacity: 0; } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }

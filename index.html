@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#080b24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Friend Bingo</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+html, body { margin: 0; min-height: 100%; }
+body { font-family: var(--text); color: var(--ink2); background: radial-gradient(ellipse at 50% 0%, var(--bg2), var(--bg1) 50%, var(--bg3)) fixed; -webkit-tap-highlight-color: transparent; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 110%, rgba(255, 61, 127, .2), transparent 50%); pointer-events: none; z-index: 0; }
+.view { position: relative; display: none; min-height: var(--vh, 100vh); box-sizing: border-box; z-index: 1; }
+.view.on { display: block; }
+.wrap { max-width: 460px; margin: 0 auto; padding: 16px 14px calc(28px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+#play .wrap { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+
+/* ---- join */
+#join .wrap { padding-top: 54px; text-align: center; }
+#join .logo { justify-content: center; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+#join .logo .mk { width: 110px; height: 110px; }
+#join .logo b { font-size: 44px; }
+#join .logo small { font-size: 12px; letter-spacing: .5em; margin-top: 10px; }
+#join .bulbs { margin-bottom: 22px; }
+.j-card { padding: 24px 18px 20px; text-align: left; }
+.j-card label { display: flex; justify-content: space-between; font: 900 11px/1 var(--text); letter-spacing: .3em; color: var(--accent2); margin: 4px 0 10px; }
+.j-card label .left { color: var(--muted); letter-spacing: .05em; font: 700 12px/1 var(--text); }
+.j-card input { width: 100%; box-sizing: border-box; font: 800 24px/1.2 var(--text); padding: 14px 16px; border: 0; border-radius: var(--r3); background: var(--pit); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--edge); margin-bottom: 18px; outline: none; }
+.j-card input:focus { box-shadow: inset 0 0 0 2px var(--gold); }
+#code { font: 400 48px/1 var(--display); letter-spacing: .4em; text-align: center; text-transform: uppercase; padding: 14px 0 14px .4em; color: var(--gold); }
+.j-play { width: 100%; font-size: 24px; padding: 18px; letter-spacing: .1em; }
+.j-play.ready { animation: pulse 1.4s infinite; }
+#joinErr { color: var(--bad); font-weight: 700; min-height: 20px; margin: 12px 0 0; text-align: center; }
+#joinWait { color: var(--muted); font-size: 15px; margin: 8px 0 0; text-align: center; }
+.ver { font: 900 11px/1 var(--text); letter-spacing: .3em; color: var(--faint); margin-top: 30px; }
+#deskTv { display: none; margin-top: 16px; font-size: 15px; color: var(--muted); }
+#deskTv a { color: var(--gold); }
+@media (min-width: 900px) and (hover: hover) { #deskTv { display: block; } }
+
+/* ---- cards & bars */
+.bar2 { display: flex; align-items: center; justify-content: space-between; font: 900 12px/1 var(--text); letter-spacing: .2em; color: var(--muted); margin: 4px 4px 14px; }
+.bar2 b { color: var(--gold); }
+.card { padding: 18px 16px 16px; margin-bottom: 12px; }
+.card h3 { display: flex; justify-content: space-between; align-items: baseline; font: 900 12px/1 var(--text); letter-spacing: .3em; color: var(--accent2); margin: 0 0 12px; }
+.card h3 small { font: 700 12px/1 var(--text); letter-spacing: 0; color: var(--muted); }
+.kick { font: 900 10px/1.6 var(--text); letter-spacing: .25em; color: var(--accent2); margin-bottom: 6px; }
+.big { font: 400 32px/1.1 var(--display); letter-spacing: .02em; margin: 0 0 8px; color: var(--ink); text-shadow: 0 2px 0 #000a; }
+.note { font: 400 14px/1.45 var(--text); color: var(--muted); margin: 10px 0 0; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+
+/* ---- faces */
+.faces { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.face-btn { position: relative; border: 0; background: var(--slab2); box-shadow: inset 0 0 0 1.5px var(--edge); border-radius: 14px; padding: 10px 4px; display: flex; justify-content: center; cursor: pointer; }
+.face-btn .med { font-size: 20px; }
+.face-btn.on { box-shadow: inset 0 0 0 3px var(--gold); background: linear-gradient(170deg, #2a3580, #1a2260); }
+.face-btn.taken { opacity: .35; }
+.plist { display: flex; flex-wrap: wrap; gap: 8px; }
+.plist span { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; background: var(--pit); border-radius: 999px; font: 400 14px/1 var(--display); letter-spacing: .03em; }
+.plist span .med { font-size: 12px; }
+.plist span.off { opacity: .5; }
+.plist .tag { font: 900 9px/1 var(--text); letter-spacing: .15em; background: var(--accent); color: #fff; padding: 3px 6px; border-radius: 999px; }
+
+/* ---- status */
+#status { position: sticky; top: 0; z-index: 10; padding: 10px 14px; margin: -16px -14px 12px; background: linear-gradient(var(--bg3) 70%, transparent); }
+#status .in { max-width: 432px; margin: 0 auto; padding: 8px 12px; display: flex; align-items: center; gap: 10px; border-radius: 16px; background: var(--slab); box-shadow: inset 0 0 0 1.5px var(--edge); }
+#status .med { font-size: 17px; }
+#status .mid { flex: 1; min-width: 0; }
+#status .mid b { display: block; font: 400 15px/1 var(--display); letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#status .mid small { display: block; font: 900 10px/1 var(--text); letter-spacing: .2em; color: var(--gold); margin-top: 5px; }
+#status .last { display: flex; align-items: center; gap: 8px; }
+#status .last .ball { font-size: 22px; }
+#status .last .ball.word { font-size: 22px; }
+#status .last small { font: 900 10px/1.4 var(--text); letter-spacing: .15em; color: var(--muted); text-align: right; }
+#status .last small b { display: block; font-size: 13px; color: var(--ink); }
+
+/* ---- tabs */
+.tabs { display: flex; gap: 6px; margin: 0 0 12px; }
+.tabs button { position: relative; flex: 1; font: 900 12px/1 var(--text); letter-spacing: .2em; padding: 12px 0; border: 0; border-radius: 999px; background: var(--pit); color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--edge); }
+.tabs button.on { background: var(--gold-bg); color: var(--gold-ink); box-shadow: none; }
+.tabs .n { position: absolute; right: 10px; top: 8px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #ff4f5e; color: #fff; font: 700 10px/16px var(--text); }
+
+/* ---- play */
+.patstrip { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--slab2); box-shadow: inset 0 0 0 1.5px var(--edge); margin-bottom: 10px; }
+.patstrip .pat { font-size: 9px; flex: none; }
+.patstrip .t { flex: 1; min-width: 0; }
+.patstrip .t b { display: block; font: 400 20px/1 var(--display); letter-spacing: .02em; }
+.patstrip .t small { display: block; font: 700 12px/1.3 var(--text); color: var(--muted); margin-top: 3px; }
+.patstrip .pts { font: 900 11px/1 var(--text); letter-spacing: .1em; background: var(--gold-bg); color: var(--gold-ink); padding: 6px 9px; border-radius: 999px; flex: none; }
+.calledrow { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; min-height: 64px; }
+.calledrow .ball { font-size: 22px; }
+.calledrow .ball.word { font-size: 22px; }
+.calledrow .ball.now { font-size: 30px; }
+.calledrow .ball.now.word { font-size: 30px; }
+.calledrow .ball:first-child { animation: popIn .35s cubic-bezier(.3, 1.5, .5, 1) both; }
+.calledrow .lbl { font: 900 10px/1.4 var(--text); letter-spacing: .2em; color: var(--muted); width: 54px; flex: none; }
+.calledrow .none { font: 700 14px/1.3 var(--text); color: var(--muted); }
+.cardwrap { margin-bottom: 14px; }
+.cardwrap .cap { display: flex; justify-content: space-between; align-items: center; font: 900 11px/1 var(--text); letter-spacing: .25em; color: var(--muted); margin: 0 4px 8px; }
+.cardwrap .cap .away { color: var(--accent2); }
+.cardwrap .cap .away.zero { color: var(--gold); animation: pulse .6s infinite; }
+.bcard { font-size: 16px; }
+#bingoBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg3) 35%); display: none; }
+#bingoBar.on { display: block; }
+#bingoBar .in { max-width: 432px; margin: 0 auto; }
+#bingoBtn { width: 100%; font-size: 34px; padding: 20px; letter-spacing: .08em; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .2), 0 6px 24px rgba(255, 61, 127, .45); }
+#bingoBtn.hot { animation: hot .55s infinite; }
+#bingoBtn.calm { font-size: 20px; padding: 18px; }
+#bingoBtn.calm.ghost { box-shadow: inset 0 0 0 2px var(--edge2); }
+@keyframes hot { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.04); filter: brightness(1.25); } }
+.captain { display: flex; gap: 8px; margin-bottom: 12px; }
+.captain .btn { flex: 1; font-size: 14px; padding: 13px 8px; }
+.notice { padding: 14px 16px; border-radius: 14px; background: var(--gold-bg); color: var(--gold-ink); font: 700 15px/1.4 var(--text); margin-bottom: 12px; text-align: center; }
+.notice b { display: block; font: 400 22px/1 var(--display); letter-spacing: .03em; margin-bottom: 4px; }
+.notice.bad { background: var(--bad-bg); color: #fff; }
+.notice.pink { background: var(--pink-bg); color: #fff; }
+
+/* ---- the called board */
+.minib { display: flex; flex-direction: column; gap: 8px; }
+.minib .r { display: flex; gap: 3px; align-items: center; }
+.minib .r .l { width: 22px; flex: none; font: 400 16px/1 var(--display); text-align: center; color: var(--lc); }
+.minib .r i { flex: 1; aspect-ratio: 1; border-radius: 4px; background: var(--pit); box-shadow: inset 0 0 0 1px var(--dim); display: flex; align-items: center; justify-content: center; font: 900 9px/1 var(--text); color: var(--faint); font-style: normal; }
+.minib .r i.on { background: var(--bc); color: var(--bi); box-shadow: none; }
+.minib .r i.now { box-shadow: 0 0 0 2px #fff; }
+.wordlist { display: flex; flex-wrap: wrap; gap: 6px; }
+.wordlist span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px; border-radius: 999px; background: var(--slab2); box-shadow: inset 0 0 0 1.5px var(--edge); font: 700 13px/1.2 var(--text); }
+.wordlist span .ball { font-size: 10px; }
+.wordlist span.now { box-shadow: 0 0 0 2px #fff; }
+
+/* ---- results */
+.verdict { text-align: center; padding: 10px 0 6px; }
+.verdict .big { font-size: 48px; }
+.verdict.ok .big { color: var(--gold); text-shadow: 0 3px 0 #a06a00, 0 0 24px rgba(255, 204, 51, .5); }
+.verdict.no .big { color: var(--ink3); }
+.standings > div { display: flex; align-items: center; gap: 10px; padding: 9px 4px; box-shadow: inset 0 -1px 0 #ffffff12; }
+.standings .num { font: 400 15px/1 var(--display); color: var(--gold); width: 22px; flex: none; }
+.standings .med { font-size: 12px; }
+.standings b { flex: 1; font: 400 16px/1 var(--display); letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.standings .wins { display: flex; gap: 3px; }
+.standings .wins i { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: var(--bulb); }
+.standings small { color: var(--gold); font: 900 14px/1 var(--text); }
+.standings > div.me b { color: var(--gold); }
+.awards { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.award { padding: 8px 12px; border-radius: 999px; background: var(--gold-bg); color: var(--gold-ink); font: 900 12px/1 var(--text); letter-spacing: .2em; }
+.winmini { margin: 10px 0; }
+.winmini .who { display: flex; align-items: center; gap: 8px; font: 400 16px/1 var(--display); margin-bottom: 8px; }
+.winmini .who .med { font-size: 12px; }
+.winmini .bcard { font-size: 12px; }
+.winmini .bcard .sq { cursor: default; }
+
+/* ---- chat */
+.msgs { height: 42vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 6px 0; }
+.msg { align-self: flex-start; max-width: 84%; padding: 10px 14px; background: var(--pit); font: 400 16px/1.3 var(--text); border-radius: 16px 16px 16px 4px; }
+.msg.me { align-self: flex-end; background: var(--gold-bg); color: var(--gold-ink); border-radius: 16px 16px 4px 16px; }
+.chatIn { display: flex; gap: 8px; margin-top: 10px; }
+.chatIn input { flex: 1; min-width: 0; font: 400 16px/1.2 var(--text); padding: 12px; border: 0; border-radius: var(--r3); background: var(--pit); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--edge); outline: none; }
+.crow { display: flex; align-items: center; gap: 10px; padding: 10px 8px; box-shadow: inset 0 -1px 0 #ffffff12; }
+.crow .med { font-size: 14px; }
+.crow .nm { flex: 1; min-width: 0; font: 400 15px/1.2 var(--display); letter-spacing: .03em; }
+.crow .nm small { display: block; font: 400 13px/1.3 var(--text); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.crow .n { background: #ff4f5e; color: #fff; font: 700 11px/18px var(--text); min-width: 18px; text-align: center; border-radius: 999px; padding: 0 4px; }
+.crow .go { color: var(--muted); font-size: 22px; }
+.empty { text-align: center; color: var(--muted); font: 400 15px/1.4 var(--text); padding: 14px; }
+
+/* ---- pops */
+#toast { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%) translateY(20px); z-index: 80; max-width: 90vw; padding: 12px 20px; border-radius: 999px; background: var(--gold-bg); color: var(--gold-ink); font: 700 15px/1.2 var(--text); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+#toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.out { opacity: 0; }
+#pop { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; pointer-events: none; }
+#pop.on { display: flex; animation: popIn .25s cubic-bezier(.3, 1.4, .5, 1); }
+#pop.out { animation: popOut .25s ease-in forwards; }
+#pop > div { position: relative; text-align: center; padding: 24px 32px; border-radius: 22px; background: var(--slab); box-shadow: inset 0 0 0 2px var(--gold), 0 20px 60px #000c; }
+#pop b { display: block; font: 400 44px/1 var(--display); letter-spacing: .03em; color: var(--gold); text-shadow: 0 2px 0 #000; }
+#pop span { display: block; font: 700 15px/1.3 var(--text); color: var(--ink3); margin-top: 8px; }
+#pop.good b { color: var(--good); } #pop.good > div { box-shadow: inset 0 0 0 2px var(--good), 0 20px 60px #000c; }
+#pop.bad b { color: var(--bad); } #pop.bad > div { box-shadow: inset 0 0 0 2px var(--bad), 0 20px 60px #000c; }
+#pop.pink b { color: var(--accent); } #pop.pink > div { box-shadow: inset 0 0 0 2px var(--accent), 0 20px 60px #000c; }
+@keyframes popOut { from { opacity: 1; } to { opacity: 0; transform: scale(1.2); } }
+#offline { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 85; display: none; padding: 10px 18px; border-radius: 999px; background: var(--bad2); color: #fff; font: 900 12px/1 var(--text); letter-spacing: .1em; }
+#offline.on { display: block; }
+.hitfx { animation: hitBg .5s ease-out; }
+@keyframes hitBg { 0% { box-shadow: inset 0 0 0 100vmax #ff5a5a55; } 100% { box-shadow: inset 0 0 0 100vmax transparent; } }
+.goldfx { animation: goldBg .8s ease-out; }
+@keyframes goldBg { 0% { box-shadow: inset 0 0 0 100vmax #ffcc3366; } 100% { box-shadow: inset 0 0 0 100vmax transparent; } }
+</style>
+</head>
+<body>
+
+<section class="view on" id="join">
+  <div class="wrap">
+    <div class="logo"><div class="mk" data-logo></div><b data-title><span></span><small data-sub></small></b></div>
+    <div class="bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <form id="joinForm" class="j-card panel" autocomplete="off">
+      <label for="code"><span>ROOM CODE</span></label>
+      <input id="code" maxlength="4" placeholder="••••" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <label for="name"><span>YOUR NAME</span><span id="nameLeft" class="left">12</span></label>
+      <input id="name" maxlength="12" placeholder="Your name" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <button class="btn pink j-play" id="playBtn">PLAY</button>
+      <p id="joinErr"></p>
+      <p id="joinWait"></p>
+    </form>
+    <div id="deskTv">Hooking up the TV? <a href="/tv">Open the TV page</a> on the computer plugged into it.</div>
+    <p class="ver" id="ver"></p>
+  </div>
+</section>
+
+<section class="view" id="lobby"><div class="wrap"></div></section>
+<section class="view" id="play"><div class="wrap"></div></section>
+
+<div id="bingoBar"><div class="in"><button class="btn pink" id="bingoBtn">BINGO!</button></div></div>
+<div id="pop"><div><b></b><span></span></div></div>
+<div id="toast"></div>
+<div id="offline">Reconnecting…</div>
+
+<script src="/bingo.js"></script>
+<script src="/common.js"></script>
+<script>
+(function () {
+  'use strict';
+  var F = window.Game, B = window.Bingo, $ = F.$, esc = F.esc, sfx = F.sfx;
+  var sess = F.store.get('fb.me', null);
+  var S = null, me = null, conn = null, hello = null, lastSeq = null;
+  var triedRejoinByName = false, typed = false;
+  var waiting = false, waited = false, waitTimer = null, online = false, LIVE_MS = 15 * 60 * 1000;
+  var ui = { tab: 'play', chatWith: null, local: {}, round: null, lockTimer: null };
+
+  function waitForGame() {
+    waiting = true; waited = true;
+    var bar = $('#offline'); bar.textContent = 'Hang tight. Bringing your game back…'; bar.classList.add('on');
+    clearTimeout(waitTimer);
+    waitTimer = setTimeout(function () { if (waiting && conn && hello) conn.send(hello); }, 2000);
+  }
+  function stopWaiting() { if (!waiting) return; waiting = false; clearTimeout(waitTimer); var bar = $('#offline'); bar.classList.remove('on'); bar.textContent = 'Reconnecting…'; }
+
+  document.querySelectorAll('[data-title] > span').forEach(function (n) { n.textContent = F.TITLE; });
+  document.querySelectorAll('[data-sub]').forEach(function (n) { n.textContent = F.SUB; });
+  document.querySelectorAll('[data-logo]').forEach(function (n) { n.innerHTML = F.logo(); });
+  document.title = F.TITLE;
+  $('#ver').textContent = 'VERSION ' + F.VERSION;
+  F.pressFx();
+
+  function show(id) { document.querySelectorAll('.view').forEach(function (n) { n.classList.toggle('on', n.id === id); }); $('#bingoBar').classList.toggle('on', id === 'play' && !!(me && me.playing) && S.phase !== 'gameOver'); }
+  var toastTimer, toastOut;
+  function toast(msg) {
+    var t = $('#toast');
+    clearTimeout(toastTimer); clearTimeout(toastOut);
+    t.textContent = msg; t.classList.remove('out');
+    if (t.classList.contains('on')) F.bump(t, 1.06); else t.classList.add('on');
+    toastTimer = setTimeout(function () { t.classList.add('out'); toastOut = setTimeout(function () { t.classList.remove('on', 'out'); }, 200); }, 2800);
+  }
+  var popTimer, popOut;
+  function pop(kind, title, sub, ms) {
+    var el = $('#pop');
+    clearTimeout(popTimer); clearTimeout(popOut);
+    el.className = ''; void el.offsetWidth;
+    el.querySelector('b').textContent = title; el.querySelector('span').textContent = sub || '';
+    el.className = 'on ' + kind;
+    popTimer = setTimeout(function () { el.classList.add('out'); popOut = setTimeout(function () { el.className = ''; }, 260); }, ms || 1500);
+  }
+  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* ignore */ } }
+  function send(m) { if (!conn || !conn.send(m)) toast('Reconnecting… try again in a second'); }
+  function player(id) { return S ? (S.players.filter(function (p) { return p.id === id; })[0] || null) : null; }
+  function pname(id) { var p = player(id); return p ? p.name : '?'; }
+  function med(id) { return F.med(player(id)); }
+  function G() { return S.game; }
+  function pat(id) { return B.patternById(id) || B.PATTERNS[0]; }
+
+  function fitViewport() { var vv = window.visualViewport; document.documentElement.style.setProperty('--vh', (vv ? vv.height : innerHeight) + 'px'); }
+  if (window.visualViewport) visualViewport.addEventListener('resize', fitViewport);
+  addEventListener('resize', fitViewport); fitViewport();
+
+  /* ------------------------------------------------------------- join */
+  var codeIn = $('#code'), nameIn = $('#name');
+  var qCode = (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+  codeIn.value = qCode || '';
+  nameIn.value = F.store.get('fb.name', '');
+  function joinReady() {
+    codeIn.value = codeIn.value.toUpperCase().replace(/[^A-Z]/g, '');
+    $('#nameLeft').textContent = (12 - nameIn.value.length) + ' left';
+    var ok = codeIn.value.length === 4 && nameIn.value.trim().length > 0;
+    $('#playBtn').classList.toggle('ready', ok);
+    return ok;
+  }
+  codeIn.addEventListener('input', joinReady); nameIn.addEventListener('input', joinReady); joinReady();
+  $('#joinForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    sfx.unlock();
+    if (!joinReady()) { $('#joinErr').textContent = 'Enter the 4-letter room code and your name.'; F.shake($('#joinForm')); return; }
+    $('#joinErr').textContent = '';
+    typed = true;
+    F.store.set('fb.name', nameIn.value.trim().toUpperCase());
+    joinBusy(true);
+    var nm = nameIn.value.trim();
+    if (sess && sess.token && sess.code === codeIn.value && sess.name === nm.toUpperCase()) { triedRejoinByName = false; start({ t: 'rejoin', code: sess.code, token: sess.token }); }
+    else start({ t: 'join', code: codeIn.value, name: nm, face: F.store.get('fb.face', null) });
+  });
+  var busyTimer;
+  function joinBusy(on) {
+    var b = $('#playBtn');
+    clearTimeout(busyTimer);
+    b.classList.toggle('busy', on); b.textContent = on ? 'JOINING…' : 'PLAY';
+    $('#joinWait').textContent = '';
+    if (on) busyTimer = setTimeout(function () { $('#joinWait').textContent = 'Waking the game up. The first join of the night can take up to a minute.'; }, 3500);
+  }
+  function start(h) {
+    hello = h; lastSeq = null;
+    if (!conn) conn = F.connect({ hello: function () { return hello; }, onMessage: onMessage, onStatus: function (ok) { online = ok; $('#offline').classList.toggle('on', !ok && !!S); } });
+    else if (!conn.send(h)) { joinBusy(false); $('#joinErr').textContent = 'Connecting… tap PLAY again in a moment.'; }
+  }
+  function backToJoin(msg) {
+    stopWaiting();
+    S = null; me = null; hello = null; sess = null; ui = { tab: 'play', chatWith: null, local: {}, round: null };
+    F.store.del('fb.me');
+    joinBusy(false);
+    show('join');
+    $('#joinErr').textContent = msg || '';
+    if (msg) F.shake($('#joinForm'));
+  }
+
+  function onMessage(m) {
+    if (m.t === 'joined') {
+      joinBusy(false); stopWaiting(); waited = false;
+      sess = { code: m.code, token: m.token, name: (sess && sess.name) || nameIn.value.trim().toUpperCase(), at: Date.now() };
+      F.store.set('fb.me', sess);
+      hello = { t: 'rejoin', code: m.code, token: m.token };
+      triedRejoinByName = false;
+      F.stayAwake();
+    } else if (m.t === 'error') {
+      var ours = sess && hello && (hello.t === 'rejoin' || (hello.t === 'join' && String(hello.code).toUpperCase() === sess.code));
+      if (m.code === 'noroom' && m.wait && ours && (S || Date.now() - (sess.at || 0) < LIVE_MS)) waitForGame();
+      else if (m.code === 'noroom' && hello && hello.t === 'rejoin' && sess && sess.name && !triedRejoinByName) { triedRejoinByName = true; hello = { t: 'join', code: sess.code, name: sess.name }; conn.send(hello); }
+      else if (!S || m.code === 'noroom') {
+        if (waited && sess && m.code === 'noroom') {
+          var keep = sess;
+          backToJoin('Your game hasn’t come back yet. Once the TV shows it again, tap PLAY to jump back in.');
+          sess = keep; F.store.set('fb.me', keep);
+          codeIn.value = keep.code; if (keep.name) nameIn.value = keep.name; joinReady(); waited = false;
+        } else backToJoin(typed || S ? m.msg : '');
+      } else { toast(m.msg); buzz(60); }
+    } else if (m.t === 'left') {
+      if (conn && m.replaced) { conn.stop(); conn = null; }
+      backToJoin(m.kicked ? 'You were removed from the game.' : m.replaced ? 'This game was opened on another device or tab.' : '');
+    } else if (m.t === 'daubed') {
+      ui.local[m.k + ':' + m.s] = true;
+    } else if (m.t === 'nope') {
+      delete ui.local[m.k + ':' + m.s];
+      var sq = document.querySelector('.bcard[data-k="' + m.k + '"] .sq[data-s="' + m.s + '"]');
+      if (sq) { sq.classList.remove('shake'); void sq.offsetWidth; sq.classList.add('shake'); }
+      sfx.nope(); buzz(40);
+      renderPlay();
+    } else if (m.t === 'state') {
+      if ($('#playBtn').classList.contains('busy')) joinBusy(false);
+      if (sess && Date.now() - (sess.at || 0) > 20000) { sess.at = Date.now(); F.store.set('fb.me', sess); }
+      var list = m.s.fx || [], fresh = [];
+      if (lastSeq === null) lastSeq = list.length ? list[list.length - 1].seq : 0;
+      else { fresh = list.filter(function (e) { return e.seq > lastSeq; }); if (fresh.length) lastSeq = fresh[fresh.length - 1].seq; }
+      S = m.s; me = S.me; window.__S = S;
+      render(fresh);
+    }
+  }
+  if (sess && sess.code && sess.token && (!qCode || qCode === sess.code)) start({ t: 'rejoin', code: sess.code, token: sess.token });
+  setInterval(function () { if (S && sess && online) { sess.at = Date.now(); F.store.set('fb.me', sess); } }, 60000);
+
+  /* ----------------------------------------------------------- render */
+  var lastChatCount = {};
+  function render(fresh) {
+    var has = {};
+    fresh.forEach(function (e) { has[e.type] = e; });
+    if (has.restored) toast('We’re back. Right where we left off.');
+    chatPings();
+    if (S.phase === 'lobby') { renderLobby(); show('lobby'); return; }
+    var g = G();
+    if (ui.round !== g.ri) { ui.local = {}; ui.round = g.ri; }
+    show('play');
+    fxPhone(fresh);
+    renderPlay();
+  }
+
+  /* ----------------------------------------------------------- chat bookkeeping */
+  function seenKey() { return 'fb.seen.' + (S ? S.code : ''); }
+  function seenChats() { return F.store.get(seenKey(), {}); }
+  function unreadFrom(peer) { var list = (me.chats || {})[peer] || [], sn = seenChats()[peer] || 0, n = 0; list.forEach(function (m, k) { if (k >= sn && m.from === peer) n++; }); return n; }
+  function markSeen(peer) { var s = seenChats(); s[peer] = ((me.chats || {})[peer] || []).length; F.store.set(seenKey(), s); }
+  function unreadTotal() { var n = 0; Object.keys(me.chats || {}).forEach(function (p) { n += unreadFrom(p); }); return n; }
+  function chatPings() {
+    if (!me) return;
+    Object.keys(me.chats || {}).forEach(function (peer) {
+      var list = me.chats[peer], was = lastChatCount[peer] || 0;
+      if (list.length > was && was > 0 && list[list.length - 1].from === peer) {
+        if (ui.tab === 'chat' && ui.chatWith === peer) markSeen(peer);
+        else { sfx.ping(); buzz(40); toast(pname(peer) + ': ' + list[list.length - 1].text.slice(0, 60)); }
+      }
+      lastChatCount[peer] = list.length;
+    });
+  }
+
+  /* ------------------------------------------------------------ lobby */
+  function renderLobby() {
+    var st = S.settings;
+    var h = '<div class="bar2"><span>ROOM <b>' + esc(S.code) + '</b></span><span>' + esc(me.name) + (me.isCaptain ? ' · <b>CAPTAIN</b>' : '') + '</span></div>';
+    h += '<div class="card panel" data-key="pick"><h3><span>PICK YOUR FACE</span><small>Tap to change</small></h3><div class="faces">' + B.FACES.map(function (f) {
+      var taken = S.players.filter(function (p) { return p.face === f && p.id !== me.id; })[0];
+      return '<button class="face-btn' + (f === me.face ? ' on' : '') + (taken ? ' taken' : '') + '" data-a="face" data-v="' + f + '"' + (taken ? ' disabled' : '') + '>' + F.med({ color: me.color, face: f }) + '</button>';
+    }).join('') + '</div></div>';
+    h += '<div class="card panel" data-key="who"><h3><span>AT THE TABLE</span><small>' + S.players.length + ' of ' + S.maxPlayers + '</small></h3><div class="plist">' + S.players.map(function (p) { return '<span class="' + (p.on ? '' : 'off') + '">' + med(p.id) + esc(p.name) + (p.bot ? '<span class="tag">BOT</span>' : '') + '</span>'; }).join('') + '</div>' +
+      '<p class="note">' + st.rounds.length + ' round' + (st.rounds.length === 1 ? '' : 's') + ': ' + st.rounds.map(function (id) { return pat(id).name; }).join(' → ') + '. ' + st.cards + ' card' + (st.cards === 1 ? '' : 's') + ' each, ' + (st.daub === 'tap' ? 'tap to daub' : 'auto-daub') + ', ' + (st.pace ? 'a ball every ' + st.pace + 's' : 'the caller calls each ball') + ', ' + (st.pool.kind === 'custom' ? '“' + esc(st.pool.name) + '”' : 'classic 1–75') + '. Settings are on the TV.</p></div>';
+    if (me.isCaptain) h += '<button class="btn pink" data-a="start" style="width:100%;font-size:20px;padding:18px;letter-spacing:.08em"' + (S.players.length < S.minPlayers ? ' disabled' : '') + '>' + (S.players.length < S.minPlayers ? 'Waiting for players' : 'Start bingo night') + '</button>';
+    else h += '<p class="note" style="text-align:center">' + esc(pname(S.captain)) + ' (or the TV) starts the game.</p>';
+    h += '<p class="note" style="text-align:center;margin-top:14px"><button class="chip" data-a="leave">Leave</button></p>';
+    F.morph($('#lobby .wrap'), h);
+  }
+
+  /* ------------------------------------------------------------ play */
+  function renderPlay() {
+    var h = '';
+    h += statusHtml();
+    h += tabsHtml();
+    if (ui.tab === 'called') h += calledHtml();
+    else if (ui.tab === 'chat') h += chatHtml();
+    else h += mainHtml();
+    F.morph($('#play .wrap'), h);
+    renderBingoBar();
+  }
+  function statusHtml() {
+    var g = G();
+    if (!me.playing) return '<div id="status" data-key="status"><div class="in"><div class="mid"><b>Watching</b></div></div></div>';
+    var last = g.last;
+    return '<div id="status" data-key="status"><div class="in">' + med(me.id) + '<div class="mid"><b>' + esc(me.name) + '</b><small>' + me.points + ' PT' + (me.points === 1 ? '' : 'S') + ' · ROUND ' + (g.ri + 1) + '/' + g.rounds.length + '</small></div><div class="last">' + (last != null ? '<small>BALL <b>' + g.called.length + '</b></small><span data-key="lb' + last + g.ri + '">' + F.ball(g.pool, last) + '</span>' : '<small>' + (g.paused ? 'PAUSED' : 'NO BALLS YET') + '</small>') + '</div></div></div>';
+  }
+  function tabsHtml() {
+    var unread = unreadTotal(), g = G();
+    return '<div class="tabs" data-key="tabs">' + [['play', 'PLAY'], ['called', 'CALLED · ' + g.called.length], ['chat', 'CHAT']].map(function (t) { var n = t[0] === 'chat' ? unread : 0; return '<button data-a="tab" data-v="' + t[0] + '" class="' + (ui.tab === t[0] ? 'on' : '') + '">' + t[1] + (n ? '<span class="n">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+  }
+  function card(key, inner, cls) { return '<div class="card panel ' + (cls || '') + '" data-key="' + key + '">' + inner + '</div>'; }
+  function daubed(k, s) { return (me.daubs[k] && me.daubs[k][s]) || ui.local[k + ':' + s]; }
+  function myMarks(k) { var out = []; for (var s = 0; s < 25; s++) out[s] = !!daubed(k, s); return out; }
+  function cardHtml(k, win, extraCls) {
+    var g = G(), c = me.cards[k], custom = g.pool.kind === 'custom';
+    var h = '<div class="bcard ' + (extraCls || '') + '" data-key="card' + g.ri + '_' + k + '" data-k="' + k + '"><div class="head">' + B.LETTERS.map(function (L, ci) { return '<span class="' + (ci === 2 ? 'n' : '') + '" style="--lc:' + B.COLORS[ci].bg + '">' + L + '</span>'; }).join('') + '</div><div class="grid">';
+    for (var s = 0; s < 25; s++) {
+      var id = c[s], free = id === B.FREE, on = free || daubed(k, s);
+      h += '<div class="sq' + (free ? ' free' : '') + (custom && !free ? ' word' : '') + (on && !free ? ' daub' : '') + (win && win.indexOf(s) >= 0 ? ' win' : '') + '" data-a="daub" data-k="' + k + '" data-s="' + s + '" data-key="s' + s + '" style="--rot:' + ((s * 37 + k * 11) % 40 - 20) + 'deg">' + (free ? 'FREE' : esc(B.labelOf(g.pool, id))) + (on && !free ? '<span class="ink" data-key="ink"></span>' : '') + '</div>';
+    }
+    return h + '</div></div>';
+  }
+  function awayOf(k) { var g = G(); return B.distance(pat(g.pattern), B.markedSquares(me.cards[k], calledSet(), g.daub === 'tap' ? myMarks(k) : null)).away; }
+  var calledCache = { n: -1, set: null };
+  function calledSet() { var g = G(); if (calledCache.n !== g.called.length || calledCache.ri !== g.ri) { var set = {}; g.called.forEach(function (id) { set[id] = true; }); calledCache = { n: g.called.length, ri: g.ri, set: set }; } return calledCache.set; }
+  function captainHtml() {
+    var g = G(), ph = S.phase;
+    if (!me.isCaptain) return '';
+    var b = [];
+    if (ph === 'intro') b.push('<button class="btn ghost" data-a="h" data-v="skipIntro">Skip the intro</button>');
+    if (ph === 'play') {
+      if (!g.pace) b.push('<button class="btn" data-a="h" data-v="next">Next ball</button>');
+      else if (g.paused) { b.push('<button class="btn" data-a="h" data-v="next">Next ball</button>'); b.push('<button class="btn ghost" data-a="h" data-v="resume">Resume</button>'); }
+      else b.push('<button class="btn ghost" data-a="h" data-v="pause">Pause</button>');
+    }
+    if (ph === 'roundOver') b.push('<button class="btn" data-a="h" data-v="skip">' + (g.ri + 1 < g.rounds.length ? 'Next round' : 'Finish') + '</button>');
+    if (ph === 'gameOver') b.push('<button class="btn pink" data-a="h" data-v="again">Play again</button><button class="btn ghost" data-a="h" data-v="lobby">Lobby</button>');
+    return b.length ? '<div class="captain" data-key="cap">' + b.join('') + '</div>' : '';
+  }
+  function mainHtml() {
+    var g = G(), ph = S.phase, p = pat(g.pattern);
+    if (!me.playing) return '<div class="card panel"><p class="note">You’re watching. Tap PLAY on the join screen with a new name to jump in.</p></div>';
+    var h = '';
+    if (ph === 'gameOver') return endHtml();
+    if (ph === 'roundOver') return roundHtml();
+    h += '<div class="patstrip" data-key="pat">' + F.patternPic(p) + '<div class="t"><b>' + esc(p.name) + '</b><small>' + esc(p.about) + '</small></div><span class="pts">+' + p.points + '</span></div>';
+    if (ph === 'intro') h += '<div class="notice" data-key="intro"><b>ROUND ' + (g.ri + 1) + ' OF ' + g.rounds.length + '</b>' + (g.cards === 1 ? 'Here’s your card. ' : 'Here are your ' + g.cards + ' cards. ') + (g.daub === 'tap' ? 'Tap your numbers as they’re called, then hit BINGO.' : 'Your numbers get daubed for you. You still have to hit BINGO.') + '</div>';
+    if (ph === 'claim') { var cl = g.claim; h += '<div class="notice pink" data-key="claim"><b>' + (cl.pids.indexOf(me.id) >= 0 ? 'CHECKING YOUR CARD…' : esc(cl.pids.map(pname).join(' & ')) + ' SHOUTED BINGO') + '</b>' + (cl.pids.indexOf(me.id) >= 0 ? 'Fingers crossed.' : 'Got it too on this ball? Shout now and share it.') + '</div>'; }
+    if (ph === 'play' && g.paused) h += '<div class="notice" data-key="paused"><b>PAUSED</b>The caller is taking a breath.</div>';
+    h += captainHtml();
+    var rec = g.called.slice(-4).reverse();
+    h += '<div class="calledrow" data-key="crow"><span class="lbl">' + (rec.length ? 'LAST CALLED' : '') + '</span>' + (rec.length ? rec.map(function (id, i) { return '<span data-key="cr' + id + '">' + F.ball(g.pool, id, i === 0 ? 'now' : '') + '</span>'; }).join('') : '<span class="none">' + (ph === 'intro' ? 'The first ball is coming up.' : 'Waiting on the caller…') + '</span>') + '</div>';
+    me.cards.forEach(function (c, k) {
+      var away = awayOf(k);
+      h += '<div class="cardwrap" data-key="cw' + k + '"><div class="cap"><span>' + (me.cards.length > 1 ? 'CARD ' + (k + 1) : 'YOUR CARD') + '</span><span class="away' + (away === 0 ? ' zero' : '') + '">' + (away === 0 ? 'THAT’S A BINGO — SHOUT IT!' : away === 1 ? '1 AWAY' : away + ' AWAY') + '</span></div>' + cardHtml(k) + '</div>';
+    });
+    if (g.daub === 'tap') h += '<p class="note" style="text-align:center">Only called numbers can be daubed. The free space is yours.</p>';
+    h += '<p class="note" style="text-align:center;margin-top:14px"><button class="chip" data-a="leave">Leave the game</button></p>';
+    return h;
+  }
+  function roundHtml() {
+    var g = G(), r = g.round, rp = pat(r.pattern), mine = r.results[me.id], won = mine && mine.won;
+    var h = '';
+    h += card('verdict', '<div class="verdict ' + (won ? 'ok' : 'no') + '"><div class="kick">ROUND ' + (r.ri + 1) + ' · ' + esc(rp.name.toUpperCase()) + (r.winners.length ? ' · BALL ' + r.balls : '') + '</div><div class="big">' + (won ? 'BINGO!' : r.winners.length ? esc(r.winners.map(pname).join(' & ')) + (r.winners.length > 1 ? ' SHARE IT' : ' TAKES IT') : 'NO BINGO') + '</div><p class="note" style="margin:0">' + (won ? '+' + r.points + ' point' + (r.points === 1 ? '' : 's') + (r.winners.length > 1 ? ', shared with ' + esc(r.winners.filter(function (id) { return id !== me.id; }).map(pname).join(' & ')) : '') + '. Nice.' : mine && mine.away === 0 ? 'You had it and didn’t shout!' : mine && mine.away === 1 ? 'You were one square away. Brutal.' : r.winners.length ? 'You were ' + (mine ? mine.away : '?') + ' away.' : 'Every ball was called and nobody shouted.') + '</p></div>' + (won && mine.card ? '<div class="winmini"><div class="bcard won" style="font-size:14px">' + staticCard(mine.card, mine.daubs, mine.way) + '</div></div>' : ''));
+    h += captainHtml();
+    h += card('stand', '<h3><span>STANDINGS</span><small>' + (g.ri + 1 < g.rounds.length ? 'Next: ' + esc(pat(g.rounds[g.ri + 1]).name) : 'Last round done') + '</small></h3>' + standingsHtml(g));
+    return h;
+  }
+  function staticCard(c, marks, win) {
+    var g = G(), custom = g.pool.kind === 'custom';
+    var h = '<div class="head">' + B.LETTERS.map(function (L, ci) { return '<span class="' + (ci === 2 ? 'n' : '') + '" style="--lc:' + B.COLORS[ci].bg + '">' + L + '</span>'; }).join('') + '</div><div class="grid">';
+    for (var s = 0; s < 25; s++) { var id = c[s], free = id === B.FREE, on = free || (marks && marks[s]); h += '<div class="sq' + (free ? ' free' : '') + (custom && !free ? ' word' : '') + (on && !free ? ' daub' : '') + (win && win.indexOf(s) >= 0 ? ' win' : '') + '" style="--rot:' + ((s * 37) % 40 - 20) + 'deg">' + (free ? 'FREE' : esc(B.labelOf(g.pool, id))) + (on && !free ? '<span class="ink"></span>' : '') + '</div>'; }
+    return h + '</div>';
+  }
+  function standingsHtml(g) {
+    var ids = g.order.filter(function (id) { return g.players[id] && !g.players[id].left; }).sort(function (a, b) { return g.players[b].points - g.players[a].points; });
+    return '<div class="standings">' + ids.map(function (id, k) { var x = g.players[id]; return '<div class="' + (id === me.id ? 'me' : '') + '"><span class="num">' + (k + 1) + '</span>' + med(id) + '<b>' + esc(pname(id)) + '</b><span class="wins">' + x.wins.map(function () { return '<i></i>'; }).join('') + '</span><small>' + x.points + ' PT' + (x.points === 1 ? '' : 'S') + '</small></div>'; }).join('') + '</div>';
+  }
+  function endHtml() {
+    var g = G(), ch = g.champions || [], mineAw = (g.awards || []).filter(function (a) { return a.id === me.id; });
+    var h = card('end', '<div class="verdict ' + (ch.indexOf(me.id) >= 0 ? 'ok' : 'no') + '"><div class="kick">THAT’S BINGO NIGHT</div><div class="big">' + (ch.indexOf(me.id) >= 0 ? 'YOU’RE THE CHAMPION!' : ch.length ? esc(ch.map(pname).join(' & ')) + (ch.length > 1 ? ' ARE CHAMPIONS' : ' IS THE CHAMPION') : 'NO CHAMPION') + '</div></div>' + (mineAw.length ? '<div class="awards">' + mineAw.map(function (a) { return '<span class="award">' + esc(a.title) + '</span>'; }).join('') + '</div>' : '') + standingsHtml(g));
+    h += captainHtml();
+    h += '<p class="note" style="text-align:center;margin-top:14px"><button class="chip" data-a="leave">Leave</button></p>';
+    return h;
+  }
+  function calledHtml() {
+    var g = G(), h = '';
+    if (g.pool.kind === 'custom') {
+      var items = g.called.slice().reverse();
+      h = card('called', '<h3><span>CALLED SO FAR</span><small>' + g.called.length + ' of ' + B.poolSize(g.pool) + '</small></h3>' + (items.length ? '<div class="wordlist">' + items.map(function (id) { return '<span class="' + (id === g.last ? 'now' : '') + '" data-key="w' + id + '">' + F.ball(g.pool, id) + esc(B.labelOf(g.pool, id)) + '</span>'; }).join('') + '</div>' : '<p class="empty">Nothing yet.</p>'));
+    } else {
+      var set = calledSet(), rows = '';
+      for (var c = 0; c < 5; c++) { rows += '<div class="r"><span class="l" style="--lc:' + B.COLORS[c].bg + '">' + B.LETTERS[c] + '</span>'; for (var id = c * 15 + 1; id <= c * 15 + 15; id++) rows += '<i class="' + (set[id] ? 'on' : '') + (id === g.last ? ' now' : '') + '" style="--bc:' + B.COLORS[c].bg + ';--bi:' + B.COLORS[c].ink + '">' + id + '</i>'; rows += '</div>'; }
+      h = card('called', '<h3><span>CALLED SO FAR</span><small>' + g.called.length + ' of 75</small></h3><div class="minib">' + rows + '</div>');
+    }
+    return h;
+  }
+  function renderBingoBar() {
+    var g = G(), btn = $('#bingoBtn'), ph = S.phase;
+    if (!me.playing) { $('#bingoBar').classList.remove('on'); return; }
+    btn.className = 'btn pink'; btn.disabled = false;
+    if (ph === 'intro') { btn.className = 'btn ghost calm'; btn.disabled = true; btn.textContent = g.cards === 1 ? 'YOUR CARD IS READY' : 'YOUR CARDS ARE READY'; }
+    else if (ph === 'roundOver') { btn.className = 'btn ghost calm'; btn.disabled = true; btn.textContent = g.ri + 1 < g.rounds.length ? 'NEXT ROUND COMING UP' : 'THAT’S THE LAST ROUND'; }
+    else if (ph === 'gameOver') { $('#bingoBar').classList.remove('on'); return; }
+    else if (me.claimed) { btn.className = 'btn calm'; btn.disabled = true; btn.textContent = ph === 'claim' ? 'BINGO! CHECKING…' : 'BINGO ✓'; }
+    else if (me.lockedFor > 0) { btn.className = 'btn red calm'; btn.disabled = true; btn.textContent = 'NOT A BINGO · ' + Math.ceil(me.lockedFor / 1000) + 's'; clearTimeout(ui.lockTimer); ui.lockTimer = setTimeout(function () { me.lockedFor = Math.max(0, me.lockedFor - 1000); renderBingoBar(); }, 1000); }
+    else { btn.textContent = 'BINGO!'; if (me.best && me.best.away === 0) btn.classList.add('hot'); }
+    $('#bingoBar').classList.add('on');
+  }
+
+  function chatHtml() {
+    var others = S.players.filter(function (p) { return p.id !== me.id && !p.bot; });
+    if (ui.chatWith && !others.some(function (p) { return p.id === ui.chatWith; })) ui.chatWith = null;
+    if (ui.chatWith) {
+      var peer = ui.chatWith, list = (me.chats || {})[peer] || [];
+      markSeen(peer);
+      var h = '<div class="card panel" data-key="chat"><h3><span><button class="chip" data-a="chatBack">‹ Back</button></span><small>' + esc(pname(peer)) + ' · private</small></h3>';
+      h += '<div class="msgs" id="msgs" data-key="msgs">' + (list.length ? list.map(function (m) { return '<div class="msg ' + (m.from === me.id ? 'me' : '') + '">' + esc(m.text) + '</div>'; }).join('') : '<p class="empty">Nothing yet. Only the two of you can see this.</p>') + '</div>';
+      h += '<div class="chatIn"><input id="chatIn" data-key="chatIn" maxlength="240" placeholder="Message ' + esc(pname(peer)) + '…" enterkeyhint="send"><button class="btn sm" data-a="chatSend">Send</button></div></div>';
+      setTimeout(function () { var m = $('#msgs'); if (m) m.scrollTop = m.scrollHeight; }, 30);
+      return h;
+    }
+    var h2 = '<div class="card panel" data-key="chatList"><h3><span>PRIVATE CHAT</span><small>Just the two of you</small></h3>';
+    if (!others.length) h2 += '<p class="empty">Nobody else to message yet.</p>';
+    others.forEach(function (p) {
+      var list = (me.chats || {})[p.id] || [], last = list[list.length - 1], n = unreadFrom(p.id);
+      h2 += '<div class="crow tap" data-a="chatWith" data-id="' + p.id + '">' + med(p.id) + '<div class="nm">' + esc(p.name) + '<small>' + (last ? esc((last.from === me.id ? 'You: ' : '') + last.text) : 'Say something') + '</small></div>' + (n ? '<span class="n">' + n + '</span>' : '<span class="go">›</span>') + '</div>';
+    });
+    return h2 + '</div>';
+  }
+
+  /* ------------------------------------------------------------ effects on the phone */
+  function fxPhone(fresh) {
+    var g = G();
+    fresh.forEach(function (e) {
+      switch (e.type) {
+        case 'round': sfx.round(); buzz(30); break;
+        case 'ball': sfx.tick(); buzz(15); if (g.daub === 'auto' && me.cards.some(function (c) { return c.indexOf(e.id) >= 0; })) { setTimeout(function () { sfx.daub(); }, 150); } break;
+        case 'falseBingo': if (e.pid === me.id) { sfx.buzzer(); buzz([200, 80, 200]); hurtFx(); pop('bad', 'NOT A BINGO', 'You were ' + e.away + ' away. Sit tight for a bit.', 2200); } else { sfx.nope(); toast(pname(e.pid) + ' shouted a false bingo!'); } break;
+        case 'bingo': if (e.pid === me.id) { sfx.share(); buzz([60, 40, 60]); goldFx(); pop('pink', 'BINGO!', 'Checking your card…', 1800); } else { sfx.ping(); buzz(40); toast(pname(e.pid) + ' shouted BINGO!'); } break;
+        case 'roundOver': if (e.winners.indexOf(me.id) >= 0) { sfx.bingo(); buzz([80, 60, 80, 60, 200]); goldFx(); pop('good', 'IT’S GOOD!', '+' + pat(g.round.pattern).points + ' point' + (pat(g.round.pattern).points === 1 ? '' : 's'), 2200); } else if (e.winners.length) { sfx.sad(); } else { sfx.sad(); } break;
+        case 'gameOver': if ((g.champions || []).indexOf(me.id) >= 0) { sfx.champion(); goldFx(); buzz([100, 60, 100, 60, 300]); } else sfx.round(); break;
+        case 'pause': sfx.pause(); break;
+        case 'resume': sfx.ping(); break;
+        case 'joined': if (e.pid !== me.id) sfx.join(); break;
+      }
+    });
+  }
+  function hurtFx() { var b = document.body; b.classList.remove('hitfx'); void b.offsetWidth; b.classList.add('hitfx'); }
+  function goldFx() { var b = document.body; b.classList.remove('goldfx'); void b.offsetWidth; b.classList.add('goldfx'); }
+
+  /* ------------------------------------------------------------ taps */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]');
+    if (!b || b.disabled) return;
+    var a = b.getAttribute('data-a'), v = b.getAttribute('data-v');
+    sfx.unlock();
+    switch (a) {
+      case 'face': F.store.set('fb.face', v); send({ t: 'face', f: v }); sfx.tap(); break;
+      case 'start': send({ t: 'h', a: 'start' }); break;
+      case 'leave': F.confirm('Leave the game?', S.game ? 'Your cards go in the bin. You can come back with the same name.' : 'You can join again any time.', 'Leave', true).then(function (ok) { if (ok) send({ t: 'leave' }); }); break;
+      case 'tab': ui.tab = v; if (v !== 'chat') ui.chatWith = null; renderPlay(); break;
+      case 'h': send({ t: 'h', a: v }); sfx.tap(); break;
+      case 'daub': {
+        var g = G(), k = Number(b.getAttribute('data-k')), s = Number(b.getAttribute('data-s'));
+        if (!g || g.daub !== 'tap' || !me.playing || (S.phase !== 'play' && S.phase !== 'claim')) break;
+        if (daubed(k, s) || me.cards[k][s] === B.FREE) break;
+        if (!calledSet()[me.cards[k][s]]) { b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); sfx.nope(); buzz(40); break; }
+        ui.local[k + ':' + s] = true;
+        send({ t: 'daub', k: k, s: s });
+        sfx.daub(); buzz(15);
+        renderPlay();
+        break;
+      }
+      case 'chatWith': ui.chatWith = b.getAttribute('data-id'); renderPlay(); break;
+      case 'chatBack': ui.chatWith = null; renderPlay(); break;
+      case 'chatSend': chatGo(); break;
+    }
+  });
+  $('#bingoBtn').addEventListener('click', function () {
+    if (!S || !me || !me.playing) return;
+    sfx.unlock();
+    send({ t: 'bingo' });
+    buzz(60);
+    F.bump(this, 1.08);
+  });
+  function chatGo() {
+    var inp = $('#chatIn'); if (!inp || !ui.chatWith) return;
+    var text = inp.value.trim(); if (!text) return;
+    send({ t: 'chat', to: ui.chatWith, text: text });
+    inp.value = ''; inp.focus();
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (e.target.id === 'chatIn') { e.preventDefault(); chatGo(); }
+  });
+})();
+</script>
+</body>
+</html>
